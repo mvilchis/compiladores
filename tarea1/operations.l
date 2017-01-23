@@ -5,7 +5,8 @@
 
 %%
 "+" {return ADD;}
-[0-9]+ {yylval.ival= atoi(yytext);return NUMBER;}
+[0-9]+ {yylval= atoi(yytext);return NUMBER;}
 [ \t] {}
 \n {return ENTER;}
+. exit(1); 
 %%
