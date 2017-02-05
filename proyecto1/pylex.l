@@ -1,5 +1,11 @@
 %{
 #include <stdio.h>
+#include <iostream>
+#include <map>
+#include "scanner.h"
+typedef std::map<char *, char*> Map;
+using namespace std;
+
 %}
 DIGIT [1-9][0-9]* 
 INTEGER [0]|{DIGIT}
@@ -11,62 +17,48 @@ COMMENT "//"[^\n]
 MULTIPLE_COMMENT [^*]+([^*]+)*|.*
 IDENTIFIER [a-zA-ZñÑ_][a-zA-ZñÑ_0-9]*
 STRING \"[^\n"]*\"
+SPACES [ \t\n]+
+NEWLINE [\n]
+ //map<char*,char*> defines;
+ map<string, string> defines;
 %%
-"void" {}
-"int" {}
-"double" {}
-"bool" {}
-"string" {} 
-"class" {}
-"interface" {}
-"null" {}
-"this"  {}
-"extends" {}
-"implements" {}
-"for" {}
-"while" {}
-"if" {}
-"else" {}
-"return" {}
-"break" {}
-"New" {}
-"NewArray" {}
-"true" {}
-"false" {}
-{IDENTIFIER} {char subbuff[32];memcpy( subbuff, &yytext[0], 31); subbuff[32] = '\0'; printf("Identificador%s",subbuff);}
-\/\*{MULTIPLE_COMMENT}\*\/  {printf ("Comentario multiple: %s", yytext);}
-{STRING} {printf("Cadena%s", yytext);}
-{HEX_REAL} {printf("Hexadecimal %s", yytext);}
-{HEX_INTEGER} {printf("Hexadecimal %s", yytext);} 
-{INTEGER} {printf("Entero %s", yytext);}
-{REAL} {printf("Real %s", yytext);}
-{DOUBLE} {printf("Doble %s", yytext);}
-"+" {}
-"-" {}
-"*" {}
-"/" {}
-"%" {}
-"<" {}
-"<=" {}
-">" {}
-">=" {}
-"=" {}
-"==" {}
-"!=" {}
-"&&" {}
-"||" {}
-"!" {}
-";" {}
-"," {}
-"." {}
-"[" {}
-"]" {}
-"(" {}
-")" {}
-"{" {}
-"}" {}
+"\#define"{SPACES}[A-Z]+{SPACES}+[^\n]* {
+					  std::string def       = yytext;
+					  std::string delimiter = " ";
 
-. {printf( "Error en la cadena %s \n", yytext);}
+                      string s = def;
+                      size_t pos = 0;
+                      std::string token;
+                      
+                      pos = s.find(delimiter);
+                      string define = s.substr(0, pos);
+                      s.erase(0, pos + delimiter.length());
+                      
+                      pos = s.find(delimiter);
+                      string key = s.substr(0, pos);
+                      s.erase(0, pos + delimiter.length());
+                      
+                      pos = s.find(delimiter);
+                      string value = s.substr(0, pos);
+                      
+                      std::cout << value << std::endl;
+                      std::cout << key << std::endl;
+                      defines.insert(std::make_pair(key, value));
+                    }
+"\#"[A-Z]+ {
+                      string text = strdup(yytext);
+					  std::string delimiter = "#";
+                      size_t pos = 0;
+				      string s = text; 
+                      pos = s.find(delimiter);
+                      string define = s.substr(0, pos);
+                      s.erase(0, pos + delimiter.length());
+                      
+                      pos = s.find(delimiter);
+                      string key = s.substr(0, pos);
+                     
+					  std::cout<< defines.find(key)->second <<std::endl;
+}
 %%
 
 int main( int argc, char **argv) {
