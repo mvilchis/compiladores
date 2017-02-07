@@ -18,13 +18,15 @@ static void DoBeforeEachAction();
 %}
 SPACES [ \t]+
 COMMENT "//"[^\n]*
-MULTIPLE_COMMENT \/\*([^*]|[\n]*|(\*+([^*/]|[\n])))*
+MULTIPLE_COMMENT \/\*([^*]|[\n]|(\*+([^*/]|[\n])))*
+STRING \"[^\n"]*\"
+
  map<string, string> defines;
- int first_line = 0;
+ int first_line = 1;
  int in_comment = 0;
 
 %%
-
+{STRING} {printf("%s", yytext);}
 "\#define"{SPACES}[A-Z]+{SPACES}+[^\n]* {
                       string delimiter = " ";
                       string yytext_copy = strdup(yytext);
@@ -38,9 +40,7 @@ MULTIPLE_COMMENT \/\*([^*]|[\n]*|(\*+([^*/]|[\n])))*
                       defines.insert(std::make_pair(key, value));
 
                     }
-"\#define".* {
-      ReportError::InvalidDirective(first_line);
-            }
+
 "\#"[A-Z]+ {
                       string yytext_copy = strdup(yytext);
                       string key = yytext_copy.substr(1);
@@ -50,7 +50,9 @@ MULTIPLE_COMMENT \/\*([^*]|[\n]*|(\*+([^*/]|[\n])))*
                         ReportError::InvalidDirective(first_line);
                       }
 }
-
+"\#define".* {
+      ReportError::InvalidDirective(first_line);
+            }
 {MULTIPLE_COMMENT} {
                     in_comment = 1;
                     string yytext_copy = strdup(yytext);
@@ -61,7 +63,7 @@ MULTIPLE_COMMENT \/\*([^*]|[\n]*|(\*+([^*/]|[\n])))*
                       }
                 }
 
-\*+\/ {in_comment = 0; }
+\*+\/ {if (in_comment == 0){printf("%s", yytext);}in_comment = 0; }
 {COMMENT} {}
 <<EOF>>     {if (in_comment) {ReportError::UntermComment();} return 0;}
 . {

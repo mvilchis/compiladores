@@ -120,7 +120,7 @@ NEWLINE [\n]
         strcpy(yylval.stringConstant,yytext);
         return T_StringConstant;
     }
-"\"." {
+\"[^\n\"]* {
         ReportError::UntermString(&yylloc, yytext);
 }
 {HEX_INTEGER} {
